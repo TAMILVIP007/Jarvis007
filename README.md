@@ -20,7 +20,7 @@ Can be found on telegram as [Julia](https://t.me/MissJuliaRobot)
 
 Deploy Anie to Heroku:
 
-<p align="left"><a href="https://heroku.com/deploy?template=https://github.com/Amarnathcdj/Julia/tree/master"> <img src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy to Heroku" /></a></p>
+<p align="left"><a href="https://heroku.com/deploy?template=https://github.com/zeuslord224/Jarvis007"> <img src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy to Heroku" /></a></p>
 
 ## Credits
 **Thanks to these projects which helped me a lot to make this awesome bot**
