@@ -17,7 +17,7 @@ from julia.events import register
 
 client = MongoClient()
 client = MongoClient(MONGO_DB_URI)
-db = client["missjuliarobot"]
+db = client["masha"]
 approved_users = db.approve
 
 
