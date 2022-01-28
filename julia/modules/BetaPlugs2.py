@@ -327,13 +327,13 @@ async def _(event):
 
     animation_interval = 2.0
 
-    animation_ttl = range(0, 117)
+    animation_ttl = range(117)
 
     # input_str = event.pattern_match.group(1)
 
     # if input_str == "momfck":
     m = await event.reply("momfck")
-    
+
     animation_chars = [
       "Inviting your mom for sex to my bedroom",
       "Your mom accepted.",

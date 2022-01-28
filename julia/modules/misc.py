@@ -25,10 +25,9 @@ async def wish_check(event):
     if wishtxt:
         reslt = f"**Your wish **__{wishtxt}__ **has been cast.** ✨\
               \n\n__Chance of success :__ **{chance}%**"
-    else:
-        if event.is_reply:
-            reslt = f"**Your wish has been cast. **✨\
+    elif event.is_reply:
+        reslt = f"**Your wish has been cast. **✨\
                   \n\n__Chance of success :__ **{chance}%**"
-        else:
-            reslt = f"Make A Wish."
+    else:
+        reslt = 'Make A Wish.'
     await event.reply(reslt)

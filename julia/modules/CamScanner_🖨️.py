@@ -48,18 +48,19 @@ async def asciiart(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.message.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     directory = "./"
     test = os.listdir(directory)
     for item in test:
-        if item.endswith(".jpg"):
-            os.remove(os.path.join(directory, item))
-        elif item.endswith(".png"):
-            os.remove(os.path.join(directory, item))
-        elif item.endswith(".jpeg"):
+        if (
+            item.endswith(".jpg")
+            or not item.endswith(".jpg")
+            and item.endswith(".png")
+            or not item.endswith(".jpg")
+            and not item.endswith(".png")
+            and item.endswith(".jpeg")
+        ):
             os.remove(os.path.join(directory, item))
     reply_msg = await event.get_reply_message()
     downloaded_file_name = await tbot.download_media(reply_msg, "./")

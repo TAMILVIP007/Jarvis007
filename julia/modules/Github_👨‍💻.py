@@ -49,9 +49,7 @@ async def _(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.message.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     text = event.text[len("/git "):]
     usr = get(f"https://api.github.com/users/{text}").json()
@@ -89,9 +87,7 @@ async def _(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.message.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     text = event.text[len("/repo "):]
     usr = get(f"https://api.github.com/users/{text}/repos?per_page=300").json()

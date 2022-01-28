@@ -35,9 +35,8 @@ async def terminal_runner(term):
     result = str(stdout.decode().strip()) + str(stderr.decode().strip())
 
     if len(result) > 4096:
-        output = open("output.txt", "w+")
-        output.write(result)
-        output.close()
+        with open("output.txt", "w+") as output:
+            output.write(result)
         await tbot.send_file(
             term.chat_id,
             "output.txt",

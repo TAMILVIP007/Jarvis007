@@ -60,178 +60,169 @@ async def can_change_info(message):
 
 @tbot.on(events.ChatAction())  # pylint:disable=E0602
 async def _(event):
-    cws = get_current_welcome_settings(event.chat_id)
-    if cws:
-        # logger.info(event.stringify())
-        """user_added=False,
+    if not (cws := get_current_welcome_settings(event.chat_id)):
+        return
+    # logger.info(event.stringify())
+    """user_added=False,
         user_joined=True,
         user_left=False,
         user_kicked=False,"""
-        if event.user_joined:
-            if cws.should_clean_welcome:
-                try:
-                    await tbot.delete_messages(  # pylint:disable=E0602
-                        event.chat_id, cws.previous_welcome
-                    )
-                except Exception as e:  # pylint:disable=C0103,W0703
-                    print(e)  # pylint:disable=E0602
-            a_user = await event.get_user()
-            chat = await event.get_chat()
-            me = await tbot.get_me()
-            title = chat.title if chat.title else "this chat"
-            participants = await event.client.get_participants(chat)
-            count = len(participants)
-            mention = "[{}](tg://user?id={})".format(a_user.first_name, a_user.id)
-            first = a_user.first_name
-            last = a_user.last_name
-            if last:
-                fullname = f"{first} {last}"
-            else:
-                fullname = first
-            username = (
-                f"@{me.username}" if me.username else f"[Me](tg://user?id={me.id})"
+    if event.user_joined:
+        if cws.should_clean_welcome:
+            try:
+                await tbot.delete_messages(  # pylint:disable=E0602
+                    event.chat_id, cws.previous_welcome
+                )
+            except Exception as e:  # pylint:disable=C0103,W0703
+                print(e)  # pylint:disable=E0602
+        a_user = await event.get_user()
+        chat = await event.get_chat()
+        me = await tbot.get_me()
+        title = chat.title or "this chat"
+        participants = await event.client.get_participants(chat)
+        count = len(participants)
+        mention = "[{}](tg://user?id={})".format(a_user.first_name, a_user.id)
+        first = a_user.first_name
+        last = a_user.last_name
+        fullname = f"{first} {last}" if last else first
+        username = (
+            f"@{me.username}" if me.username else f"[Me](tg://user?id={me.id})"
+        )
+        userid = a_user.id
+        current_saved_welcome_message = cws.custom_welcome_message
+        mention = "[{}](tg://user?id={})".format(a_user.first_name, a_user.id)
+        if rules := sql.get_rules(event.chat_id):
+            chats = botcheck.find({})
+            for c in chats:
+             if event.chat_id == c["id"]:
+              current_message = await event.reply(
+               current_saved_welcome_message.format(
+                   mention=mention,
+                   title=title,
+                   count=count,
+                   first=first,
+                   last=last,
+                   fullname=fullname,
+                   username=username,
+                   userid=userid),
+               file=cws.media_file_id,
+               buttons=[[Button.inline('Rules ✝️', data=f'start-ruless-{userid}')], [Button.inline('I am not a bot ✔️', data=f'check-bot-{userid}')]],
+              )
+              chats = verified_user.find({})
+              for c in chats:
+               if event.chat_id == c["id"] and userid == c["user"]:
+                  update_previous_welcome(event.chat_id, current_message.id)
+                  return
+              await tbot(EditBannedRequest(event.chat_id, userid, MUTE_RIGHTS))
+              update_previous_welcome(event.chat_id, current_message.id)        
+              return # needy as we are in for loop
+            # for loop
+            current_message = await event.reply(
+               current_saved_welcome_message.format(
+                   mention=mention,
+                   title=title,
+                   count=count,
+                   first=first,
+                   last=last,
+                   fullname=fullname,
+                   username=username,
+                   userid=userid),
+               file=cws.media_file_id,
+               buttons=[[Button.inline('Rules ✝️', data=f'start-ruless-{userid}')]],
             )
-            userid = a_user.id
-            current_saved_welcome_message = cws.custom_welcome_message
-            mention = "[{}](tg://user?id={})".format(a_user.first_name, a_user.id)
-            rules = sql.get_rules(event.chat_id)
-            if rules:
-             chats = botcheck.find({})
-             for c in chats:
-              if event.chat_id == c["id"]:
-               current_message = await event.reply(
-                current_saved_welcome_message.format(
-                    mention=mention,
-                    title=title,
-                    count=count,
-                    first=first,
-                    last=last,
-                    fullname=fullname,
-                    username=username,
-                    userid=userid),
-                file=cws.media_file_id,
-                buttons=[[Button.inline('Rules ✝️', data=f'start-ruless-{userid}')], [Button.inline('I am not a bot ✔️', data=f'check-bot-{userid}')]],
-               )
-               chats = verified_user.find({})
-               for c in chats:
-                if event.chat_id == c["id"] and userid == c["user"]:
-                   update_previous_welcome(event.chat_id, current_message.id)
-                   return
-               await tbot(EditBannedRequest(event.chat_id, userid, MUTE_RIGHTS))
-               update_previous_welcome(event.chat_id, current_message.id)        
-               return # needy as we are in for loop
-             # for loop
-             current_message = await event.reply(
-                current_saved_welcome_message.format(
-                    mention=mention,
-                    title=title,
-                    count=count,
-                    first=first,
-                    last=last,
-                    fullname=fullname,
-                    username=username,
-                    userid=userid),
-                file=cws.media_file_id,
-                buttons=[[Button.inline('Rules ✝️', data=f'start-ruless-{userid}')]],
-             )
-             update_previous_welcome(event.chat_id, current_message.id)
-            else:
-             chats = botcheck.find({})
-             for c in chats:
-              if event.chat_id == c["id"]:
-               current_message = await event.reply(
-                current_saved_welcome_message.format(
-                    mention=mention,
-                    title=title,
-                    count=count,
-                    first=first,
-                    last=last,
-                    fullname=fullname,
-                    username=username,
-                    userid=userid),
-                file=cws.media_file_id,
-                buttons=[[Button.inline('I am not a bot ✔️', data=f'check-bot-{userid}')]],
-               )
-               chats = verified_user.find({})
-               for c in chats:
-                if event.chat_id == c["id"] and userid == c["user"]:
-                   update_previous_welcome(event.chat_id, current_message.id)
-                   return
-               await tbot(EditBannedRequest(event.chat_id, userid, MUTE_RIGHTS))
-               update_previous_welcome(event.chat_id, current_message.id)
-               return # needy as we are in for loop
-             # for loop
-             current_message = await event.reply(
-                current_saved_welcome_message.format(
-                    mention=mention,
-                    title=title,
-                    count=count,
-                    first=first,
-                    last=last,
-                    fullname=fullname,
-                    username=username,
-                    userid=userid),
-                file=cws.media_file_id)
-             update_previous_welcome(event.chat_id, current_message.id)
+        else:
+            chats = botcheck.find({})
+            for c in chats:
+             if event.chat_id == c["id"]:
+              current_message = await event.reply(
+               current_saved_welcome_message.format(
+                   mention=mention,
+                   title=title,
+                   count=count,
+                   first=first,
+                   last=last,
+                   fullname=fullname,
+                   username=username,
+                   userid=userid),
+               file=cws.media_file_id,
+               buttons=[[Button.inline('I am not a bot ✔️', data=f'check-bot-{userid}')]],
+              )
+              chats = verified_user.find({})
+              for c in chats:
+               if event.chat_id == c["id"] and userid == c["user"]:
+                  update_previous_welcome(event.chat_id, current_message.id)
+                  return
+              await tbot(EditBannedRequest(event.chat_id, userid, MUTE_RIGHTS))
+              update_previous_welcome(event.chat_id, current_message.id)
+              return # needy as we are in for loop
+            # for loop
+            current_message = await event.reply(
+               current_saved_welcome_message.format(
+                   mention=mention,
+                   title=title,
+                   count=count,
+                   first=first,
+                   last=last,
+                   fullname=fullname,
+                   username=username,
+                   userid=userid),
+               file=cws.media_file_id)
+        update_previous_welcome(event.chat_id, current_message.id)
 
 @tbot.on(events.ChatAction())  # pylint:disable=E0602
 async def _(event):
-    #print("yo")
-    cws = get_current_goodbye_settings(event.chat_id)
-    if cws:
-        #print("gotcha")
-        #print(event.stringify())
-        """user_added=False,
+    if not (cws := get_current_goodbye_settings(event.chat_id)):
+        return
+    #print("gotcha")
+    #print(event.stringify())
+    """user_added=False,
         user_joined=False,
         user_left=True,
         user_kicked=True,"""
-        if event.user_kicked or event.user_left:
-            #print ("1")
-            if cws.should_clean_goodbye:
-                #print ("2")
-                try:
-                    await tbot.delete_messages(  # pylint:disable=E0602
-                        event.chat_id, cws.previous_goodbye
-                    )
-                except Exception as e:  # pylint:disable=C0103,W0703
-                    print(e)  # pylint:disable=E0602
-            #print ("3")
-            a_user = await event.get_user()
-            chat = await event.get_chat()
-            me = await tbot.get_me()
+    if event.user_kicked or event.user_left:
+        #print ("1")
+        if cws.should_clean_goodbye:
+            #print ("2")
+            try:
+                await tbot.delete_messages(  # pylint:disable=E0602
+                    event.chat_id, cws.previous_goodbye
+                )
+            except Exception as e:  # pylint:disable=C0103,W0703
+                print(e)  # pylint:disable=E0602
+        #print ("3")
+        a_user = await event.get_user()
+        chat = await event.get_chat()
+        me = await tbot.get_me()
 
-            title = chat.title if chat.title else "this chat"
-            participants = await event.client.get_participants(chat)
-            count = len(participants)
-            mention = "[{}](tg://user?id={})".format(a_user.first_name, a_user.id)
-            first = a_user.first_name
-            last = a_user.last_name
-            if last:
-                fullname = f"{first} {last}"
-            else:
-                fullname = first
-            username = (
-                f"@{me.username}" if me.username else f"[Me](tg://user?id={me.id})"
-            )
-            userid = a_user.id
-            current_saved_goodbye_message = cws.custom_goodbye_message
-            mention = "[{}](tg://user?id={})".format(a_user.first_name, a_user.id)
-            #print(current_saved_goodbye_message)
-            current_message = await event.reply(
-                current_saved_goodbye_message.format(
-                    mention=mention,
-                    title=title,
-                    count=count,
-                    first=first,
-                    last=last,
-                    fullname=fullname,
-                    username=username,
-                    userid=userid,
-                ),
-                file=cws.media_file_id,
-            )
-            #print (current_message)
-            update_previous_goodbye(event.chat_id, current_message.id)
+        title = chat.title or "this chat"
+        participants = await event.client.get_participants(chat)
+        count = len(participants)
+        mention = "[{}](tg://user?id={})".format(a_user.first_name, a_user.id)
+        first = a_user.first_name
+        last = a_user.last_name
+        fullname = f"{first} {last}" if last else first
+        username = (
+            f"@{me.username}" if me.username else f"[Me](tg://user?id={me.id})"
+        )
+        userid = a_user.id
+        current_saved_goodbye_message = cws.custom_goodbye_message
+        mention = "[{}](tg://user?id={})".format(a_user.first_name, a_user.id)
+        #print(current_saved_goodbye_message)
+        current_message = await event.reply(
+            current_saved_goodbye_message.format(
+                mention=mention,
+                title=title,
+                count=count,
+                first=first,
+                last=last,
+                fullname=fullname,
+                username=username,
+                userid=userid,
+            ),
+            file=cws.media_file_id,
+        )
+        #print (current_message)
+        update_previous_goodbye(event.chat_id, current_message.id)
 
 # -- @MissJulia_Robot (sassiet captcha ever) --#
 
@@ -239,10 +230,10 @@ async def _(event):
 async def rules_st(event):
     rules = sql.get_rules(event.chat_id)
     # print(rules)
-    user_id = int(event.pattern_match.group(1))        
-    if not event.sender_id == user_id:
-       await event.answer("You aren't a new user!")
-       return
+    user_id = int(event.pattern_match.group(1))
+    if event.sender_id != user_id:
+        await event.answer("You aren't a new user!")
+        return
     text = f"The rules for **{event.chat.title}** are:\n\n{rules}"
     try:
         await tbot.send_message(
@@ -258,18 +249,18 @@ async def rules_st(event):
 @tbot.on(events.CallbackQuery(pattern=r"check-bot-(\d+)"))
 async def cbot(event):
     chats = verified_user.find({})
-    user_id = int(event.pattern_match.group(1))        
+    user_id = int(event.pattern_match.group(1))
     chat_id = event.chat_id
     chat_title = event.chat.title
-    if not event.sender_id == user_id:
-       await event.answer("You aren't the person whom should be verified.")
-       return
+    if event.sender_id != user_id:
+        await event.answer("You aren't the person whom should be verified.")
+        return
     for c in chats:
         if chat_id == c["id"] and user_id == c["user"]:
             await event.answer("You are already verified !")
             return
     num = random.randint(1,9)
-    img = Image.new('RGB', (300, 200), color ="white") 
+    img = Image.new('RGB', (300, 200), color ="white")
     fnt = ImageFont.truetype("./.apt/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf", 100)
     d = ImageDraw.Draw(img)
     d.text((110,50), str(num), font=fnt, fill="black")
@@ -653,11 +644,11 @@ async def _(event):
     if msg and msg.media:
         tbot_api_file_id = pack_bot_file_id(msg.media)
         add_welcome_setting(event.chat_id, msg.message, False, 0, tbot_api_file_id)
-        await event.reply("Welcome message saved. ")
     else:
         input_str = event.text.split(None, 1)
         add_welcome_setting(event.chat_id, input_str[1], False, 0, None)
-        await event.reply("Welcome message saved. ")
+
+    await event.reply("Welcome message saved. ")
 
 
 @register(pattern="^/clearwelcome$")  # pylint:disable=E0602
@@ -698,11 +689,11 @@ async def _(event):
     if msg and msg.media:
         tbot_api_file_id = pack_bot_file_id(msg.media)
         add_goodbye_setting(event.chat_id, msg.message, False, 0, tbot_api_file_id)
-        await event.reply("Goodbye message saved. ")
     else:
         input_str = event.text.split(None, 1)
         add_goodbye_setting(event.chat_id, input_str[1], False, 0, None)
-        await event.reply("Goodbye message saved. ")
+
+    await event.reply("Goodbye message saved. ")
 
 
 @register(pattern="^/cleargoodbye$")  # pylint:disable=E0602
@@ -756,16 +747,15 @@ async def welcome_verify(event):
             "Please provide some input yes or no.\n\nCurrent setting is : **off**"
         )
         return
-    if input in "on":
-        if event.is_group:
-            chats = botcheck.find({})
-            for c in chats:
-                if event.chat_id == c["id"]:
-                    await event.reply(
-                        "Welcome Captcha is already enabled for this chat.")
-                    return
-            botcheck.insert_one({"id": event.chat_id})
-            await event.reply("Welcome Captcha enabled for this chat.")
+    if input in "on" and event.is_group:
+        chats = botcheck.find({})
+        for c in chats:
+            if event.chat_id == c["id"]:
+                await event.reply(
+                    "Welcome Captcha is already enabled for this chat.")
+                return
+        botcheck.insert_one({"id": event.chat_id})
+        await event.reply("Welcome Captcha enabled for this chat.")
     if input in "off":
         if event.is_group:
             chats = botcheck.find({})
@@ -777,8 +767,8 @@ async def welcome_verify(event):
                     return
         await event.reply(
                     "Welcome Captcha enabled for this chat.")       
-    
-    if not input == "on" and not input == "off":
+
+    if input not in ["on", "off"]:
         await event.reply("I only understand by on or off")
         return
 
@@ -790,9 +780,7 @@ async def _(event):
         return
     input = event.pattern_match.group(1)
     cws = get_current_welcome_settings(event.chat_id)
-    if hasattr(cws, "custom_welcome_message"):
-        pass
-    else:
+    if not hasattr(cws, "custom_welcome_message"):
         if input in "on":
            add_welcome_setting(event.chat_id, "", True, 0, None)
            await event.reply("I will clean old welcone messages from now.")
@@ -801,9 +789,9 @@ async def _(event):
            add_welcome_setting(event.chat_id, "", False, 0, None)
            await event.reply("I will not clean old welcone messages from now.")    
            return
-        if not input == "on" and not input == "off":
-           await event.reply("I only understand by on or off")
-           return
+        if input not in ["on", "off"]:
+            await event.reply("I only understand by on or off")
+            return
     mssg = cws.custom_welcome_message
     pvw = cws.previous_welcome
     mfid = cws.media_file_id
@@ -813,14 +801,14 @@ async def _(event):
     if input in "on":
        rm_welcome_setting(event.chat_id)
        add_welcome_setting(event.chat_id, mssg, True, pvw, mfid)
-       await event.reply("I will clean old welcone messages from now.")    
+       await event.reply("I will clean old welcone messages from now.")
     if input in "off":
        rm_welcome_setting(event.chat_id)
        add_welcome_setting(event.chat_id, mssg, False, pvw, mfid)
-       await event.reply("I will not clean old welcone messages from now.")    
-    if not input == "on" and not input == "off":
-       await event.reply("I only understand by on or off")
-       return
+       await event.reply("I will not clean old welcone messages from now.")
+    if input not in ["on", "off"]:
+        await event.reply("I only understand by on or off")
+        return
 
 @register(pattern="^/cleangoodbye(?: |$)(.*)")  # pylint:disable=E0602
 async def _(event):
@@ -830,9 +818,7 @@ async def _(event):
         return
     input = event.pattern_match.group(1)
     cws = get_current_goodbye_settings(event.chat_id)
-    if hasattr(cws, "custom_goodbye_message"):
-        pass
-    else:
+    if not hasattr(cws, "custom_goodbye_message"):
         if input in "on":
            add_goodbye_setting(event.chat_id, "", True, 0, None)
            await event.reply("I will clean old welcone messages from now.")
@@ -841,9 +827,9 @@ async def _(event):
            add_goodbye_setting(event.chat_id, "", False, 0, None)
            await event.reply("I will not clean old welcone messages from now.")    
            return
-        if not input == "on" and not input == "off":
-           await event.reply("I only understand by on or off")
-           return
+        if input not in ["on", "off"]:
+            await event.reply("I only understand by on or off")
+            return
     mssg = cws.custom_goodbye_message
     pvw = cws.previous_goodbye
     mfid = cws.media_file_id
@@ -853,14 +839,14 @@ async def _(event):
     if input in "on":
        rm_goodbye_setting(event.chat_id)
        add_goodbye_setting(event.chat_id, mssg, True, pvw, mfid)
-       await event.reply("I will clean old welcone messages from now.")    
+       await event.reply("I will clean old welcone messages from now.")
     if input in "off":
        rm_goodbye_setting(event.chat_id)
        add_goodbye_setting(event.chat_id, mssg, False, pvw, mfid)
-       await event.reply("I will not clean old welcone messages from now.")    
-    if not input == "on" and not input == "off":
-       await event.reply("I only understand by on or off")
-       return
+       await event.reply("I will not clean old welcone messages from now.")
+    if input not in ["on", "off"]:
+        await event.reply("I only understand by on or off")
+        return
 
 
 file_help = os.path.basename(__file__)

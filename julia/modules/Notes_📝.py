@@ -30,9 +30,7 @@ async def can_change_info(message):
 async def on_note(event):
     name = event.pattern_match.group(1)
     note = get_notes(event.chat_id, name)
-    message_id = event.sender_id
-    if event.reply_to_msg_id:
-        message_id = event.reply_to_msg_id
+    message_id = event.reply_to_msg_id or event.sender_id
     if note is None:
         return
     await event.reply(note.reply, reply_to=message_id)
@@ -40,10 +38,9 @@ async def on_note(event):
 
 @register(pattern="^/addnote(?: |$)(.*)")
 async def _(event):
-    if event.is_group:
-        if not await can_change_info(message=event):
-            return
-    else:
+    if not event.is_group:
+        return
+    if not await can_change_info(message=event):
         return
     name = event.pattern_match.group(1)
     msg = await event.get_reply_message()
@@ -63,9 +60,7 @@ async def _(event):
 
 @register(pattern="^/notes$")
 async def on_note_list(event):
-    if event.is_group:
-        pass
-    else:
+    if not event.is_group:
         return
     all_notes = get_all_notes(event.chat_id)
     OUT_STR = "**Available notes:**\n"
@@ -91,10 +86,9 @@ async def on_note_list(event):
 
 @register(pattern="^/rmnote (.*)")
 async def on_note_delete(event):
-    if event.is_group:
-        if not await can_change_info(message=event):
-            return
-    else:
+    if not event.is_group:
+        return
+    if not await can_change_info(message=event):
         return
     name = event.pattern_match.group(1)
     remove_note(event.chat_id, name)

@@ -54,9 +54,7 @@ async def _(event):
     if event.is_group:
         if (await is_register_admin(event.input_chat, event.message.sender_id)):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
 
     if not event.is_reply:
@@ -113,9 +111,7 @@ async def _(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.message.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
 
     mone = await event.reply("Processing ...")
@@ -147,11 +143,9 @@ async def _(event):
                 document_attributes = []
                 if single_file.endswith((".mp4", ".mp3", ".flac", ".webm")):
                     metadata = extractMetadata(createParser(single_file))
-                    duration = 0
                     width = 0
                     height = 0
-                    if metadata.has("duration"):
-                        duration = metadata.get("duration").seconds
+                    duration = metadata.get("duration").seconds if metadata.has("duration") else 0
                     if os.path.exists(thumb_image_path):
                         metadata = extractMetadata(
                             createParser(thumb_image_path))

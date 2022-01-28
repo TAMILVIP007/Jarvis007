@@ -39,10 +39,10 @@ def get_reason(id, time, user):
 @register(pattern="^/setalarm (.*)")
 async def _(event):
     if event.fwd_from:
-        return    
+        return
     if not event.is_private:
        await event.reply("Alarms can only be set in my pm .")
-       return   
+       return
     approved_userss = approved_users.find({})
     for ch in approved_userss:
         iid = ch["id"]
@@ -50,9 +50,7 @@ async def _(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.message.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     quew = event.pattern_match.group(1)
     if "|" in quew:
@@ -63,12 +61,15 @@ async def _(event):
     if len(time) != 22:
       await event.reply("Please enter valid date and time.")
       return
-    ttime = dateparser.parse(f'{time}', settings={'TIMEZONE': f'{zone}', 'DATE_ORDER': 'DMY'}) 
-    if ttime == None:
-      await event.reply("Please enter valid date and time.")
-      return
+    ttime = dateparser.parse(f'{time}', settings={'TIMEZONE': f'{zone}', 'DATE_ORDER': 'DMY'})
+    if ttime is None:
+        await event.reply("Please enter valid date and time.")
+        return
     time = ttime # exchange
-    present = dateparser.parse(f'now', settings={'TIMEZONE': f'{zone}', 'DATE_ORDER': 'YMD'}) 
+    present = dateparser.parse(
+        'now', settings={'TIMEZONE': f'{zone}', 'DATE_ORDER': 'YMD'}
+    )
+
     #print(time)
     #print(present)
     if not time > present:
@@ -88,28 +89,29 @@ async def _(event):
     await event.reply("Alarm set successfully !")
 
 @tbot.on(events.NewMessage(pattern=None))
-#@tbot.on(events.ChatAction())
 async def tikclock(event):
     chats = alarms.find({})
     for c in chats:
-     #print(c)
-     chat = c["chat"]
-     user = c["user"]
-     time = c["time"]
-     zone = c["zone"]
-     reason = c["reason"]
-     present = dateparser.parse(f'now', settings={'TIMEZONE': f'{zone}', 'DATE_ORDER': 'YMD'}) 
-     ttime = dateparser.parse(f'{time}', settings={'TIMEZONE': f'{zone}'}) 
-     #print(ttime)
-     #print(present)
-     #print (zone)
-     #print(present>=ttime)
-     if present > ttime:
-      await tbot.send_message(chat, f"**DING DONG**\n\n__This is an alarm set by__ {user} __for reason -__ `{reason}`")
-      alarms.delete_one({"chat": chat, "user": user, "time": time, "zone": zone, "reason": reason})
-      break
-      return
-     continue
+        #print(c)
+        chat = c["chat"]
+        user = c["user"]
+        time = c["time"]
+        zone = c["zone"]
+        reason = c["reason"]
+        present = dateparser.parse(
+            'now', settings={'TIMEZONE': f'{zone}', 'DATE_ORDER': 'YMD'}
+        )
+
+        ttime = dateparser.parse(f'{time}', settings={'TIMEZONE': f'{zone}'})
+             #print(ttime)
+             #print(present)
+             #print (zone)
+             #print(present>=ttime)
+        if present > ttime:
+            await tbot.send_message(chat, f"**DING DONG**\n\n__This is an alarm set by__ {user} __for reason -__ `{reason}`")
+            alarms.delete_one({"chat": chat, "user": user, "time": time, "zone": zone, "reason": reason})
+            break
+        continue
 
 file_help = os.path.basename(__file__)
 file_help = file_help.replace(".py", "")

@@ -91,21 +91,17 @@ def is_user_fed_owner(fed_id, user_id):
     if getfedowner is None or getfedowner is False:
         return False
     getfedowner = getfedowner["owner"]
-    if str(user_id) == getfedowner or int(user_id) == OWNER_ID:
-        return True
-    else:
-        return False
+    return str(user_id) == getfedowner or int(user_id) == OWNER_ID
 
 
 @register(pattern="^/newfed ?(.*)")
 async def _(event):
     chat = event.chat_id
     user = event.sender
-    if event.is_group:
-        if await is_register_admin(event.input_chat, user.id):
-            pass
-        else:
-            return
+    if event.is_group and not await is_register_admin(
+        event.input_chat, user.id
+    ):
+        return
     message = event.pattern_match.group(1)
     if not event.is_private:
         await event.reply("Federations can only be created by privately messaging me.")
@@ -114,28 +110,25 @@ async def _(event):
     if not fednam:
         await event.reply("Please write the name of the federation!")
         return
-    if fednam:
-        fed_id = str(uuid.uuid4())
-        fed_name = fednam
-        # LOGGER.info(fed_id)
+    fed_id = str(uuid.uuid4())
+    fed_name = fednam
+    # LOGGER.info(fed_id)
 
-        x = sql.new_fed(user.id, fed_name, fed_id)
-        if not x:
-            await event.reply(
-                "Can't create federation!\nPlease contact @MissJuliaRobotSupport if the problem persists."
-            )
-            return
-
+    x = sql.new_fed(user.id, fed_name, fed_id)
+    if not x:
         await event.reply(
-            "**You have successfully created a new federation!**"
-            "\nName: `{}`"
-            "\nID: `{}`"
-            "\n\nUse the command below to join the federation:"
-            "\n`/joinfed {}`".format(fed_name, fed_id, fed_id),
-            parse_mode="markdown",
+            "Can't create federation!\nPlease contact @MissJuliaRobotSupport if the problem persists."
         )
-    else:
-        await event.reply("Please write down the name of the federation")
+        return
+
+    await event.reply(
+        "**You have successfully created a new federation!**"
+        "\nName: `{}`"
+        "\nID: `{}`"
+        "\n\nUse the command below to join the federation:"
+        "\n`/joinfed {}`".format(fed_name, fed_id, fed_id),
+        parse_mode="markdown",
+    )
 
 
 @register(pattern="^/delfed ?(.*)")
@@ -144,11 +137,10 @@ async def _(event):
         args = event.pattern_match.group(1)
         chat = event.chat_id
         user = event.sender
-        if event.is_group:
-            if await is_register_admin(event.input_chat, user.id):
-                pass
-            else:
-                return
+        if event.is_group and not await is_register_admin(
+            event.input_chat, user.id
+        ):
+            return
         message = event.message.id
         if not event.is_private:
             await event.reply(
@@ -186,7 +178,6 @@ async def _(event):
         )
     except Exception as e:
         print(e)
-        pass
 
 
 @tbot.on(events.CallbackQuery(pattern=r"rmfed(\_(.*))"))
@@ -201,10 +192,8 @@ async def delete_fed(event):
     if fed_id == "cancel":
         await event.edit("Federation deletion cancelled")
         return
-    getfed = sql.get_fed_info(fed_id)
-    if getfed:
-        delete = sql.del_fed(fed_id)
-        if delete:
+    if getfed := sql.get_fed_info(fed_id):
+        if delete := sql.del_fed(fed_id):
             await event.edit(
                 "You have removed your Federation! Now all the Groups that are connected with '**{}**' do not have a Federation.".format(
                     getfed["fname"]
@@ -217,11 +206,10 @@ async def delete_fed(event):
 async def _(event):
     args = event.pattern_match.group(1)
     fedid = event.pattern_match.group(2)
-    if event.is_group:
-        if await is_register_admin(event.input_chat, event.sender_id):
-            pass
-        else:
-            return
+    if event.is_group and not await is_register_admin(
+        event.input_chat, event.sender_id
+    ):
+        return
     if not args:
         return await event.reply("usage: `/renamefed <fed_id> <newname>`")
     if not fedid:
@@ -241,11 +229,10 @@ async def _(event):
 async def _(event):
     chat = event.chat_id
     # user = event.sender
-    if event.is_group:
-        if await is_register_admin(event.input_chat, event.sender_id):
-            pass
-        else:
-            return
+    if event.is_group and not await is_register_admin(
+        event.input_chat, event.sender_id
+    ):
+        return
     fed_id = sql.get_fed_id(chat)
     if not fed_id:
         await event.reply("This group is not in any federation!")
@@ -261,11 +248,10 @@ async def _(event):
     chat = event.chat_id
     user = event.sender
     args = event.pattern_match.group(1)
-    if event.is_group:
-        if await is_register_admin(event.input_chat, event.sender_id):
-            pass
-        else:
-            return
+    if event.is_group and not await is_register_admin(
+        event.input_chat, event.sender_id
+    ):
+        return
     if event.is_private:
         await event.reply("This command is specific to the group, not to my pm !")
         return
@@ -275,9 +261,7 @@ async def _(event):
 
     fed_id = sql.get_fed_id(chat)
 
-    if user.id == OWNER_ID:
-        pass
-    else:
+    if user.id != OWNER_ID:
         try:
             async for userr in tbot.iter_participants(
                 event.chat_id, filter=types.ChannelParticipantsAdmins
@@ -306,8 +290,7 @@ async def _(event):
             )
             return
 
-        get_fedlog = sql.get_fed_log(args)
-        if get_fedlog:
+        if get_fedlog := sql.get_fed_log(args):
             try:
                 await tbot.send_message(
                     int(get_fedlog),
@@ -318,7 +301,6 @@ async def _(event):
                 )
             except Exception as e:
                 print(e)
-                pass
         await event.reply(
             "This group has joined the federation: **{}**".format(getfed["fname"])
         )
@@ -328,11 +310,10 @@ async def _(event):
 async def _(event):
     chat = event.chat_id
     user = event.sender
-    if event.is_group:
-        if await is_register_admin(event.input_chat, event.sender_id):
-            pass
-        else:
-            return
+    if event.is_group and not await is_register_admin(
+        event.input_chat, event.sender_id
+    ):
+        return
     if event.is_private:
         await event.reply("This command is specific to the group, not to my pm !")
         return
@@ -340,9 +321,7 @@ async def _(event):
     fed_id = sql.get_fed_id(chat)
     fed_info = sql.get_fed_info(fed_id)
 
-    if user.id == OWNER_ID:
-        pass
-    else:
+    if user.id != OWNER_ID:
         try:
             async for userr in tbot.iter_participants(
                 event.chat_id, filter=types.ChannelParticipantsAdmins
@@ -355,8 +334,7 @@ async def _(event):
         except Exception as e:
             print(e)
     if sql.chat_leave_fed(chat) is True:
-        get_fedlog = sql.get_fed_log(fed_id)
-        if get_fedlog:
+        if get_fedlog := sql.get_fed_log(fed_id):
             try:
                 await tbot.send_message(
                     int(get_fedlog),
@@ -367,7 +345,6 @@ async def _(event):
                 )
             except Exception as e:
                 print(e)
-                pass
         await event.reply(
             "This group has left the federation **{}**".format(fed_info["fname"])
         )
@@ -380,15 +357,12 @@ async def _(event):
     chat = event.chat_id
     args = await get_user_from_event(event)
     user = event.sender
-    if args:
-        pass
-    else:
+    if not args:
         return
-    if event.is_group:
-        if await is_register_admin(event.input_chat, event.sender_id):
-            pass
-        else:
-            return
+    if event.is_group and not await is_register_admin(
+        event.input_chat, event.sender_id
+    ):
+        return
     if event.is_private:
         await event.reply("This command is specific to the group, not to my pm !")
         return
@@ -424,8 +398,7 @@ async def _(event):
         if int(user_id) == int(BOT_ID):
             await event.reply("I already am a federation admin in all federations!")
             return
-        res = sql.user_join_fed(fed_id, user_id)
-        if res:
+        if res := sql.user_join_fed(fed_id, user_id):
             await event.reply("Successfully Promoted!")
         else:
             await event.reply("Failed to promote!")
@@ -438,16 +411,13 @@ async def _(event):
     chat = event.chat_id
     args = await get_user_from_event(event)
     user = event.sender
-    if args:
-        pass
-    else:
+    if not args:
         return
 
-    if event.is_group:
-        if await is_register_admin(event.input_chat, event.sender_id):
-            pass
-        else:
-            return
+    if event.is_group and not await is_register_admin(
+        event.input_chat, event.sender_id
+    ):
+        return
 
     if event.is_private:
         await event.reply("This command is specific to the group, not to my pm !")
@@ -484,10 +454,7 @@ def is_user_fed_admin(fed_id, user_id):
     fed_admins = sql.all_fed_users(fed_id)
     if fed_admins is False:
         return False
-    if int(user_id) in fed_admins or int(user_id) == OWNER_ID:
-        return True
-    else:
-        return False
+    return int(user_id) in fed_admins or int(user_id) == OWNER_ID
 
 
 @register(pattern="^/fedinfo ?(.*)")
@@ -496,21 +463,18 @@ async def _(event):
         chat = event.chat_id
         args = event.pattern_match.group(1)
         user = event.sender
-        if event.is_group:
-            if await is_register_admin(event.input_chat, event.sender_id):
-                pass
-            else:
-                return
+        if event.is_group and not await is_register_admin(
+            event.input_chat, event.sender_id
+        ):
+            return
         if args:
             fed_id = args
-            info = sql.get_fed_info(fed_id)
         else:
             fed_id = sql.get_fed_id(chat)
             if not fed_id:
                 await event.reply("This chat is not in any federation!")
                 return
-            info = sql.get_fed_info(fed_id)
-
+        info = sql.get_fed_info(fed_id)
         if not info:
             await event.reply("Couldn't find information about that federation!")
             return
@@ -541,30 +505,25 @@ async def _(event):
         await event.reply(text, parse_mode="html")
     except Exception as e:
         print(e)
-        pass
 
 
 @register(pattern="^/fedadmins$")
 async def _(event):
     try:
-        chat = event.chat_id
-        args = False
         user = event.sender
-        if event.is_group:
-            if await is_register_admin(event.input_chat, event.sender_id):
-                pass
-            else:
-                return
-        if args:
+        chat = event.chat_id
+        if event.is_group and not await is_register_admin(
+            event.input_chat, event.sender_id
+        ):
+            return
+        if args := False:
             fed_id = args
-            info = sql.get_fed_info(fed_id)
         else:
             fed_id = sql.get_fed_id(chat)
             if not fed_id:
                 await event.reply("This chat is not in any federation!")
                 return
-            info = sql.get_fed_info(fed_id)
-
+        info = sql.get_fed_info(fed_id)
         if not info:
             await event.reply("Couldn't find information about that federation!")
             return
@@ -596,7 +555,6 @@ async def _(event):
         await event.reply(text, parse_mode="html")
     except Exception as e:
         print(e)
-        pass
 
 
 @register(pattern="^/fban (.*)")

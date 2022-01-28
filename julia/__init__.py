@@ -22,9 +22,7 @@ logging.basicConfig(
 )
 
 LOGGER = logging.getLogger(__name__)
-ENV = bool(os.environ.get("ENV", True))
-
-if ENV:
+if ENV := bool(os.environ.get("ENV", True)):
     TOKEN = os.environ.get("TOKEN", None)
     OWNER_ID = int(os.environ.get("OWNER_ID", None))
     GBAN_LOGS = os.environ.get("GBAN_LOGS", None)

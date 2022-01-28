@@ -61,9 +61,7 @@ async def _(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.message.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     # SHOW_DESCRIPTION = False
     # + " -inurl:(htm|html|php|pls|txt) intitle:index.of \"last modified\" (mkv|mp4|avi|epub|pdf|mp3)"
@@ -94,9 +92,7 @@ async def img_sampler(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.message.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     query = event.pattern_match.group(1)
     jit = f'"{query}"'
@@ -137,9 +133,7 @@ async def okgoogle(img):
     if img.is_group:
         if await is_register_admin(img.input_chat, img.message.sender_id):
             pass
-        elif img.chat_id == iid and img.sender_id == userss:
-            pass
-        else:
+        elif img.chat_id != iid or img.sender_id != userss:
             return
     message = await img.get_reply_message()
     if message and message.media:
@@ -194,10 +188,7 @@ async def okgoogle(img):
             await dev.edit("`Can't find this piece of shit.`")
             return
 
-        if img.pattern_match.group(1):
-            lim = img.pattern_match.group(1)
-        else:
-            lim = 3
+        lim = img.pattern_match.group(1) or 3
         images = await scam(match, lim)
         yeet = []
         for i in images:
@@ -268,9 +259,7 @@ async def apk(e):
     if e.is_group:
         if await is_register_admin(e.input_chat, e.message.sender_id):
             pass
-        elif e.chat_id == iid and e.sender_id == userss:
-            pass
-        else:
+        elif e.chat_id != iid or e.sender_id != userss:
             return
     try:
         app_name = e.pattern_match.group(1)

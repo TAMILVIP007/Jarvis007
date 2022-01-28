@@ -66,10 +66,9 @@ async def on_new_message(event):
 
 @register(pattern="^/addblacklist ((.|\n)*)")
 async def on_add_black_list(event):
-    if event.is_group:
-        if not await can_change_info(message=event):
-            return
-    else:
+    if not event.is_group:
+        return
+    if not await can_change_info(message=event):
         return
     text = event.pattern_match.group(1)
     to_blacklist = list(
@@ -111,19 +110,21 @@ async def on_view_blacklist(event):
 
 @register(pattern="^/rmblacklist ((.|\n)*)")
 async def on_delete_blacklist(event):
-    if event.is_group:
-        if not await can_change_info(message=event):
-            return
-    else:
+    if (
+        event.is_group
+        and not await can_change_info(message=event)
+        or not event.is_group
+    ):
         return
     text = event.pattern_match.group(1)
     to_unblacklist = list(
         {trigger.strip() for trigger in text.split("\n") if trigger.strip()}
     )
-    successful = 0
-    for trigger in to_unblacklist:
-        if sql.rm_from_blacklist(event.chat_id, trigger.lower()):
-            successful += 1
+    successful = sum(
+        bool(sql.rm_from_blacklist(event.chat_id, trigger.lower()))
+        for trigger in to_unblacklist
+    )
+
     await event.reply(f"Removed {successful} / {len(to_unblacklist)} from the blacklist")
 
 
@@ -133,11 +134,8 @@ async def _(event):
         return
     if event.is_private:
         return
-    if event.is_group:
-        if await can_change_info(message=event):
-            pass
-        else:
-            return
+    if event.is_group and not await can_change_info(message=event):
+        return
     chat = event.chat
     urls = event.text.split(None, 1)
     if len(urls) > 1:
@@ -173,14 +171,11 @@ async def _(event):
         return
     if event.is_private:
         return
-    if event.is_group:
-        if await can_change_info(message=event):
-            pass
-        else:
-            return
+    if event.is_group and not await can_change_info(message=event):
+        return
     chat = event.chat
     urls = event.text.split(None, 1)
-  
+
     if len(urls) > 1:
         urls = urls[1]
         to_unblacklist = list(
@@ -188,9 +183,9 @@ async def _(event):
         unblacklisted = 0
         for uri in to_unblacklist:
             extract_url = tldextract.extract(uri)
-            success = urlsql.rm_url_from_blacklist(
-                chat.id, extract_url.domain + "." + extract_url.suffix)
-            if success:
+            if success := urlsql.rm_url_from_blacklist(
+                chat.id, extract_url.domain + "." + extract_url.suffix
+            ):
                 unblacklisted += 1
 
         if len(to_unblacklist) == 1:
@@ -232,12 +227,9 @@ async def _(event):
         return
     if event.is_private:
         return
-    if event.is_group:
-        if await can_change_info(message=event):
-            pass
-        else:
-            return
-    chat = event.chat    
+    if event.is_group and not await can_change_info(message=event):
+        return
+    chat = event.chat
     base_string = "Current <b>blacklisted</b> domains:\n"
     blacklisted = urlsql.get_blacklisted_urls(chat.id)
     if not blacklisted:

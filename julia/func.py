@@ -150,25 +150,23 @@ async def progress(current, total, event, start, type_of_ps, file_name=None):
         estimated_total_time = elapsed_time + time_to_completion
         progress_str = "{0}{1} {2}%\n".format(
             "".join(["▰" for i in range(math.floor(percentage / 10))]),
-            "".join(["▱" for i in range(10 - math.floor(percentage / 10))]),
+            "".join(["▱" for _ in range(10 - math.floor(percentage / 10))]),
             round(percentage, 2),
         )
+
         tmp = progress_str + "{0} of {1}\nETA: {2}".format(
             humanbytes(current), humanbytes(total), time_formatter(estimated_total_time)
         )
-        if file_name:
-            try:
+        try:
+            if file_name:
                 await event.reply(
                     "{}\n**File Name:** `{}`\n{}".format(type_of_ps, file_name, tmp)
-                    
+
                 )
-            except:
-                pass
-        else:
-            try:
+            else:
                 await event.reply("{}\n{}".format(type_of_ps, tmp))
-            except:
-                pass
+        except:
+            pass
 
 
 async def convert_to_image(event, borg):

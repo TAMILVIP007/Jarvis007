@@ -45,7 +45,6 @@ approved_users = db.approve
 
 @register(pattern="^/rmbg")
 async def _(event):
-    HELP_STR = "use `/rmbg` as reply to a media"
     if event.fwd_from:
         return
     approved_userss = approved_users.find({})
@@ -55,9 +54,7 @@ async def _(event):
     if event.is_group:
         if (await is_register_admin(event.input_chat, event.message.sender_id)):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     if REM_BG_API_KEY is None:
         await event.reply("You need API token from remove.bg to use this plugin.")
@@ -79,6 +76,7 @@ async def _(event):
             output_file_name = ReTrieveFile(downloaded_file_name)
             os.remove(downloaded_file_name)
     else:
+        HELP_STR = "use `/rmbg` as reply to a media"
         await event.reply(HELP_STR)
         return
     contentType = output_file_name.headers.get("content-type")
@@ -111,14 +109,13 @@ def ReTrieveFile(input_file_name):
     files = {
         "image_file": (input_file_name, open(input_file_name, "rb")),
     }
-    r = requests.post(
+    return requests.post(
         "https://api.remove.bg/v1.0/removebg",
         headers=headers,
         files=files,
         allow_redirects=True,
         stream=True,
     )
-    return r
 @register(pattern="^/superfban")
 async def _(event):
     if event.reply_to_msg_id:

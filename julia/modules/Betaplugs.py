@@ -54,9 +54,7 @@ async def can_change_info(message):
 edit_time = 1
 @register(pattern="^/iplookup (.*)")
 async def _(event):
-    if event.is_group:
-        pass
-    else:
+    if not event.is_group:
         return
     input_str = event.pattern_match.group(1)
 
@@ -214,11 +212,7 @@ async def drawText(image_path, text):
 
 @register(pattern="^/echo (.*)")
 async def _(event):
-    if event.sender_id in SUDO_USERS:
-        pass
-    elif event.sender_id == OWNER_ID:
-        pass
-    else:
+    if event.sender_id not in SUDO_USERS and event.sender_id != OWNER_ID:
         return
     input_str = event.pattern_match.group(1)
     await event.delete()

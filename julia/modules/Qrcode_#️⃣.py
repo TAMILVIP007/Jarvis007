@@ -64,9 +64,7 @@ async def parseqr(qr_e):
     if qr_e.is_group:
         if (await is_register_admin(qr_e.input_chat, qr_e.message.sender_id)):
             pass
-        elif qr_e.chat_id == iid and qr_e.sender_id == userss:
-            pass
-        else:
+        elif qr_e.chat_id != iid or qr_e.sender_id != userss:
             return
 
     start = datetime.now()
@@ -74,11 +72,10 @@ async def parseqr(qr_e):
         await qr_e.get_reply_message(), progress_callback=progress
     )
     url = "https://api.qrserver.com/v1/read-qr-code/?outputformat=json"
-    file = open(downloaded_file_name, "rb")
-    files = {"file": file}
-    resp = post(url, files=files).json()
-    qr_contents = resp[0]["symbol"][0]["data"]
-    file.close()
+    with open(downloaded_file_name, "rb") as file:
+        files = {"file": file}
+        resp = post(url, files=files).json()
+        qr_contents = resp[0]["symbol"][0]["data"]
     os.remove(downloaded_file_name)
     end = datetime.now()
     duration = (end - start).seconds
@@ -100,9 +97,7 @@ async def make_qr(qrcode):
     if qrcode.is_group:
         if (await is_register_admin(qrcode.input_chat, qrcode.message.sender_id)):
             pass
-        elif qrcode.chat_id == iid and qrcode.sender_id == userss:
-            pass
-        else:
+        elif qrcode.chat_id != iid or qrcode.sender_id != userss:
             return
 
     start = datetime.now()
@@ -121,9 +116,7 @@ async def make_qr(qrcode):
             m_list = None
             with open(downloaded_file_name, "rb") as file:
                 m_list = file.readlines()
-            message = ""
-            for media in m_list:
-                message += media.decode("UTF-8") + "\r\n"
+            message = "".join(media.decode("UTF-8") + "\r\n" for media in m_list)
             os.remove(downloaded_file_name)
         else:
             message = previous_message.message

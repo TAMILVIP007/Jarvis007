@@ -55,9 +55,7 @@ async def parse_ocr_space_api(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.message.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     gg = await event.reply("Processing ...")
     if not os.path.isdir(TEMP_DOWNLOAD_DIRECTORY):
@@ -87,9 +85,7 @@ async def get_ocr_languages(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.message.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     languages = """**These are the available languages 👇**\n
 ENG (English)

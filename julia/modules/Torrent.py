@@ -38,9 +38,7 @@ async def _(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     sender = event.sender_id
     search = event.pattern_match.group(1)
@@ -72,9 +70,7 @@ async def paginate_news(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     tata = event.pattern_match.group(1)
     data = tata.decode()
@@ -83,7 +79,7 @@ async def paginate_news(event):
     if "|" in meta:
         sender, search, index, chatid, msgid = meta.split("|")
     sender = int(sender.strip())
-    if not event.sender_id == sender:
+    if event.sender_id != sender:
         await event.answer("You haven't send that command !")
         return
     search = search.strip()
@@ -141,9 +137,7 @@ async def paginate_prevtorrent(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     tata = event.pattern_match.group(1)
     data = tata.decode()
@@ -152,7 +146,7 @@ async def paginate_prevtorrent(event):
     if "|" in meta:
         sender, search, index, chatid, msgid = meta.split("|")
     sender = int(sender.strip())
-    if not event.sender_id == sender:
+    if event.sender_id != sender:
         await event.answer("You haven't send that command !")
         return
     search = search.strip()
@@ -167,8 +161,8 @@ async def paginate_prevtorrent(event):
         await event.reply("Sorry, either the server is down or no results found for your query.")
         print(e)
         return
-    vector = len(results)
     if num < 0:
+        vector = len(results)
         num = vector - 1
     # print(results)
     age = results[int(num)].get("age")
@@ -213,9 +207,7 @@ async def paginate_nexttorrent(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     tata = event.pattern_match.group(1)
     data = tata.decode()
@@ -224,7 +216,7 @@ async def paginate_nexttorrent(event):
     if "|" in meta:
         sender, search, index, chatid, msgid = meta.split("|")
     sender = int(sender.strip())
-    if not event.sender_id == sender:
+    if event.sender_id != sender:
         await event.answer("You haven't send that command !")
         return
     search = search.strip()
@@ -285,9 +277,7 @@ async def torrentstop(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     tata = event.pattern_match.group(1)
     data = tata.decode()
@@ -298,7 +288,7 @@ async def torrentstop(event):
     sender = int(sender.strip())
     chatid = int(chatid.strip())
     msgid = int(msgid.strip())
-    if not event.sender_id == sender:
+    if event.sender_id != sender:
         await event.answer("You haven't send that command !")
         return
     await tbot.edit_message(
@@ -318,9 +308,7 @@ async def paginate_nexttorrent(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     tata = event.pattern_match.group(1)
     data = tata.decode()
@@ -329,7 +317,7 @@ async def paginate_nexttorrent(event):
     if "|" in meta:
         sender, search, chatid, msgid = meta.split("|")
     sender = int(sender.strip())
-    if not event.sender_id == sender:
+    if event.sender_id != sender:
         await event.answer("You haven't send that command !")
         return
     search = search.strip()

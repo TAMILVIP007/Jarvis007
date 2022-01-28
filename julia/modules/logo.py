@@ -72,14 +72,8 @@ async def slogo(event):
 
 @register(pattern="^/(blogo|betalogo) ?(.*)")
 async def slogo(event):
-    if event.sender_id in SUDO_USERS:
-        pass
-    elif event.sender_id == OWNER_ID:
-        pass
-    elif event.sender_id not in SUDO_USERS:
+    if event.sender_id not in SUDO_USERS and event.sender_id != OWNER_ID:
         await event.reply("Who Are You?")
-        return
-    else:
         return
     await event.edit("`Processing..`")
     text = event.pattern_match.group(2)
@@ -130,14 +124,8 @@ async def slogo(event):
             os.remove(fname2)
 @register(pattern="^/(clogo|cyberlogo) ?(.*)")
 async def slogo(event):
-    if event.sender_id in SUDO_USERS:
-        pass
-    elif event.sender_id == OWNER_ID:
-        pass
-    elif event.sender_id not in SUDO_USERS:
+    if event.sender_id not in SUDO_USERS and event.sender_id != OWNER_ID:
         await event.reply("Who Are You?")
-        return
-    else:
         return
     await event.reply("`Processing..`")
     text = event.pattern_match.group(2)

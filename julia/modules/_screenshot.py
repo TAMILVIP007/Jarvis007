@@ -71,13 +71,8 @@ async def is_register_admin(chat, user):
 
 @register(pattern="^/sshot (.*)")
 async def msg(event):
-    if event.sender_id in SUDO_USERS:
-        pass
-    elif event.sender_id == OWNER_ID:
-        pass
-    else:
+    if event.sender_id not in SUDO_USERS and event.sender_id != OWNER_ID:
         return
-        await event.reply("Painting web-page..")
     start = datetime.now()
     try:
         chrome_options = webdriver.ChromeOptions()
@@ -104,9 +99,7 @@ async def msg(event):
         im_png = driver.get_screenshot_as_png()
         # saves screenshot of entire page
         driver.close()
-        message_id = event.message.id
-        if event.reply_to_msg_id:
-            message_id = event.reply_to_msg_id
+        message_id = event.reply_to_msg_id or event.message.id
         with io.BytesIO(im_png) as out_file:
             out_file.name = "Anie.sshot.PNG"
             await tbot.send_file(

@@ -55,9 +55,7 @@ async def virusscan(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.message.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     if not event.reply_to_msg_id:
        await event.reply("Reply to a file to scan it.")
@@ -82,19 +80,19 @@ async def virusscan(event):
        await event.reply("Thats not a file.")
        return
     try:
-      virus = c.file.name
-      await event.client.download_file(c, virus)
-      gg= await event.reply("Scanning the file ...")
-      fsize = c.file.size
-      if not fsize <= 3145700: # MAX = 3MB
-         await gg.edit("File size exceeds 3MB")
-         return
-      api_response = api_instance.scan_file_advanced(c.file.name, allow_executables=allow_executables, allow_invalid_files=allow_invalid_files, allow_scripts=allow_scripts, allow_password_protected_files=allow_password_protected_files)
-      if api_response.clean_result is True:
-       await gg.edit("This file is safe ✔️\nNo virus detected 🐞")
-      else:
-       await gg.edit("This file is Dangerous ☠️️\nVirus detected 🐞")
-      os.remove(virus)
+        virus = c.file.name
+        await event.client.download_file(c, virus)
+        gg= await event.reply("Scanning the file ...")
+        fsize = c.file.size
+        if fsize > 3145700: # MAX = 3MB
+            await gg.edit("File size exceeds 3MB")
+            return
+        api_response = api_instance.scan_file_advanced(c.file.name, allow_executables=allow_executables, allow_invalid_files=allow_invalid_files, allow_scripts=allow_scripts, allow_password_protected_files=allow_password_protected_files)
+        if api_response.clean_result is True:
+         await gg.edit("This file is safe ✔️\nNo virus detected 🐞")
+        else:
+         await gg.edit("This file is Dangerous ☠️️\nVirus detected 🐞")
+        os.remove(virus)
     except Exception as e:
       print(e)
       os.remove(virus)

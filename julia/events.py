@@ -54,18 +54,13 @@ def register(**args):
                 return
             if check.fwd_from:
                 return
-            if check.is_group or check.is_private:
-                pass
-            else:
+            if not check.is_group and not check.is_private:
                 print("i don't work in channels")
                 return
-            if check.is_group:
-               if check.chat.megagroup:
-                  pass
-               else:
-                  print("i don't work in small chats")
-                  return
-                          
+            if check.is_group and not check.chat.megagroup:
+                print("i don't work in small chats")
+                return
+
             users = gbanned.find({})
             for c in users:
                 if check.sender_id == c["user"]:
@@ -78,8 +73,6 @@ def register(**args):
                     LOAD_PLUG.update({file_test: [func]})
             except BaseException:
                 return
-            else:
-                pass
 
         tbot.add_event_handler(wrapper, events.NewMessage(**args))
         return wrapper
@@ -135,8 +128,6 @@ def juliabot(**args):
                 pass
             except BaseException as e:
                 print(e)
-            else:
-                pass
 
         if not disable_edited:
             ubot.add_event_handler(wrapper, events.MessageEdited(**args))

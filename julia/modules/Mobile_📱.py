@@ -48,9 +48,7 @@ async def devices_specifications(request):
     if request.is_group:
         if (await is_register_admin(request.input_chat, request.message.sender_id)):
             pass
-        elif request.chat_id == iid and request.sender_id == userss:
-            pass
-        else:
+        elif request.chat_id != iid or request.sender_id != userss:
             return
     """ Mobile devices specifications """
     textx = await request.get_reply_message()

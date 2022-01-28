@@ -31,7 +31,7 @@ async def is_register_admin(chat, user):
 
 @register(pattern=r"(.*?)")
 async def _(event):
-    sender = await event.get_sender()    
+    sender = await event.get_sender()
     approved_userss = approved_users.find({})
     for ch in approved_userss:
         iid = ch["id"]
@@ -39,32 +39,26 @@ async def _(event):
     if event.is_group:
         if await is_register_admin(event.input_chat, event.message.sender_id):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
 
     if event.text.startswith("/afk"):
-     cmd = event.text[len("/afk ") :]
-     if cmd is not None:
-        reason = cmd
-     else:
-        reason = ""
-     fname = sender.first_name        
-     # print(reason)
-     start_time = time.time()
-     sql.set_afk(sender.id, reason, start_time)
-     await event.reply(
-           "**{} is now AFK !**".format(fname),
-           parse_mode="markdown")
-     return
+        cmd = event.text[len("/afk ") :]
+        reason = cmd if cmd is not None else ""
+        fname = sender.first_name
+        # print(reason)
+        start_time = time.time()
+        sql.set_afk(sender.id, reason, start_time)
+        await event.reply(
+              "**{} is now AFK !**".format(fname),
+              parse_mode="markdown")
+        return
 
     if sql.is_afk(sender.id):
-       res = sql.rm_afk(sender.id)
-       if res:
-          firstname = sender.first_name
-          text = "**{} is no longer AFK !**".format(firstname)
-          await event.reply(text, parse_mode="markdown")
+        if res := sql.rm_afk(sender.id):
+            firstname = sender.first_name
+            text = "**{} is no longer AFK !**".format(firstname)
+            await event.reply(text, parse_mode="markdown")
         
 
 @tbot.on(events.NewMessage(pattern=None))
@@ -83,11 +77,9 @@ async def _(event):
             for (ent, txt) in event.get_entities_text():
                 if ent.offset != 0:
                     break
-                if isinstance(ent, types.MessageEntityMention):
-                    pass
-                elif isinstance(ent, types.MessageEntityMentionName):
-                    pass
-                else:
+                if not isinstance(
+                    ent, types.MessageEntityMention
+                ) and not isinstance(ent, types.MessageEntityMentionName):
                     return
                 c = txt
                 a = c.split()[0]
@@ -101,30 +93,25 @@ async def _(event):
     if sender == userid:
         return
 
-    if event.is_group:
-        pass
-    else:
+    if not event.is_group:
         return
 
     if sql.is_afk(userid):
         user = sql.check_afk_status(userid)
+        fst_name = "This user"
+        etime = user.start_time
         if not user.reason:
-            etime = user.start_time
             elapsed_time = time.time() - float(etime)
             final = time.strftime("%Hh: %Mm: %Ss", time.gmtime(elapsed_time))
-            fst_name = "This user"
             res = "**{} is AFK !**\n\n**Last seen**: {}".format(fst_name, final)
 
-            await event.reply(res, parse_mode="markdown")
         else:
-            etime = user.start_time
             elapsed_time = time.time() - float(etime)
             final = time.strftime("%Hh: %Mm: %Ss", time.gmtime(elapsed_time))
-            fst_name = "This user"
             res = "**{} is AFK !**\n\n**Reason**: {}\n\n**Last seen**: {}".format(
                 fst_name, user.reason, final
             )
-            await event.reply(res, parse_mode="markdown")
+        await event.reply(res, parse_mode="markdown")
     userid = ""  # after execution
     let = ""  # after execution
 

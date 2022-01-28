@@ -156,9 +156,7 @@ async def msg(event):
     if event.is_group:
         if (await is_register_admin(event.input_chat, event.message.sender_id)):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     await event.reply(random.choice(TRUTH))
 
@@ -171,9 +169,7 @@ async def msg(event):
     if event.is_group:
         if (await is_register_admin(event.input_chat, event.message.sender_id)):
             pass
-        elif event.chat_id == iid and event.sender_id == userss:
-            pass
-        else:
+        elif event.chat_id != iid or event.sender_id != userss:
             return
     await event.reply(random.choice(DARE))
 CC = (
@@ -186,13 +182,7 @@ CC = (
 
 @register(pattern="^/livecc$")
 async def msg(event):
-    if event.sender_id in SUDO_USERS:
-        pass
-    elif event.sender_id == OWNER_ID:
-        pass
-    elif event.sender_id not in SUDO_USERS:
+    if event.sender_id not in SUDO_USERS and event.sender_id != OWNER_ID:
         await event.reply("Baag Ja Mewederchod Free Cc only for SuDos😑.")
-        return
-    else:
         return
     await event.reply(random.choice(CC))

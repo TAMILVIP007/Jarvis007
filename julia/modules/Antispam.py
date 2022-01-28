@@ -53,54 +53,45 @@ async def is_register_admin(chat, user):
 
 @register(pattern="^/cleanbluetext ?(.*)")
 async def _(event):
-    if event.is_group:
-        if not await can_change_info(message=event):
-            return
-    else:
+    if not event.is_group:
         return
-    args = event.pattern_match.group(1)
-    if args:
+    if not await can_change_info(message=event):
+        return
+    if args := event.pattern_match.group(1):
         val = args
         if val in ("off", "no"):
             sql.set_cleanbt(event.chat_id, False)
             reply = "Bluetext cleaning has been disabled for <b>{}</b>".format(
                 html.escape(event.chat.title)
             )
-            await event.reply(reply, parse_mode="html")
-
         elif val in ("yes", "on"):
             sql.set_cleanbt(event.chat_id, True)
             reply = "Bluetext cleaning has been enabled for <b>{}</b>".format(
                 html.escape(event.chat.title)
             )
-            await event.reply(reply, parse_mode="html")
-
         else:
             reply = "Invalid argument.Accepted values are 'yes', 'on', 'no', 'off'"
-            await event.reply(reply, parse_mode="html")
     else:
         clean_status = sql.is_enabled(event.chat_id)
         clean_status = "Enabled" if clean_status else "Disabled"
         reply = "Bluetext cleaning for <b>{}</b> : <b>{}</b>".format(
             event.chat.title, clean_status
         )
-        await event.reply(reply, parse_mode="html")
+    await event.reply(reply, parse_mode="html")
 
 
 @register(pattern="^/ignorecleanbluetext ?(.*)")
 async def _(event):
-    if event.is_group:
-        if not await can_change_info(message=event):
-            return
-    else:
+    if not event.is_group:
+        return
+    if not await can_change_info(message=event):
         return
     args = event.pattern_match.group(1)
     chat = event.chat
 
     if args is not None:
         val = args
-        added = sql.chat_ignore_command(chat.id, val)
-        if added:
+        if added := sql.chat_ignore_command(chat.id, val):
             reply = "<b>{}</b> has been added to bluetext cleaner ignore list.".format(
                 args
             )
@@ -115,18 +106,16 @@ async def _(event):
 
 @register(pattern="^/unignorecleanbluetext ?(.*)")
 async def _(event):
-    if event.is_group:
-        if not await can_change_info(message=event):
-            return
-    else:
+    if not event.is_group:
+        return
+    if not await can_change_info(message=event):
         return
     args = event.pattern_match.group(1)
     chat = event.chat
 
     if args is not None:
         val = args
-        added = sql.chat_unignore_command(chat.id, val)
-        if added:
+        if added := sql.chat_unignore_command(chat.id, val):
             reply = "<b>{}</b> has been added to bluetext cleaner ignore list.".format(
                 args
             )
@@ -142,12 +131,11 @@ async def _(event):
 @register(pattern="^/listcleanbluetext$")
 async def _(event):
 
-    if event.is_group:
-        if not await can_change_info(message=event):
-            return
-    else:
+    if not event.is_group:
         return
 
+    if not await can_change_info(message=event):
+        return
     chat = event.chat
 
     global_ignored_list, local_ignore_list = sql.get_all_ignored(chat.id)
@@ -165,7 +153,7 @@ async def _(event):
         for x in local_ignore_list:
             text += f" - <code>{x}</code>\n"
 
-    if text == "":
+    if not text:
         text = "No commands are currently ignored from bluetext cleaning."
         await event.reply(text)
         return
@@ -180,13 +168,11 @@ async def _(event):
     for ch in approved_userss:
         iid = ch["id"]
         userss = ch["user"]
-    if event.is_group:
-        if await is_register_admin(event.input_chat, event.message.sender_id):
-            return
-        if str(event.sender_id) in str(userss) and str(event.chat_id) in str(iid):
-            return
-        pass
-    else:
+    if not event.is_group:
+        return
+    if await is_register_admin(event.input_chat, event.message.sender_id):
+        return
+    if str(event.sender_id) in str(userss) and str(event.chat_id) in str(iid):
         return
     if str(event.sender_id) == str(BOT_ID):
         return
@@ -200,8 +186,7 @@ async def _(event):
             fst_word.startswith(start) for start in CMD_STARTERS
         ):
 
-            ignored = sql.is_command_ignored(event.chat_id, command[0])
-            if ignored:
+            if ignored := sql.is_command_ignored(event.chat_id, command[0]):
                 return
             await event.delete()
 
@@ -229,17 +214,16 @@ async def profanity(event):
             "Please provide some input yes or no.\n\nCurrent setting is : **off**"
         )
         return
-    if input == "on":
-        if event.is_group:
-            chats = spammers.find({})
-            for c in chats:
-                if event.chat_id == c["id"]:
-                    await event.reply(
-                        "Profanity filter is already activated for this chat."
-                    )
-                    return
-            spammers.insert_one({"id": event.chat_id})
-            await event.reply("Profanity filter turned on for this chat.")
+    if input == "on" and event.is_group:
+        chats = spammers.find({})
+        for c in chats:
+            if event.chat_id == c["id"]:
+                await event.reply(
+                    "Profanity filter is already activated for this chat."
+                )
+                return
+        spammers.insert_one({"id": event.chat_id})
+        await event.reply("Profanity filter turned on for this chat.")
     if input == "off":
         if event.is_group:
             chats = spammers.find({})
@@ -249,7 +233,7 @@ async def profanity(event):
                     await event.reply("Profanity filter turned off for this chat.")
                     return
         await event.reply("Profanity filter isn't turned on for this chat.")
-    if not input == "on" and not input == "off":
+    if input not in ["on", "off"]:
         await event.reply("I only understand by on or off")
         return
 
@@ -277,15 +261,14 @@ async def profanity(event):
             "Please provide some input yes or no.\n\nCurrent setting is : **off**"
         )
         return
-    if input == "on":
-        if event.is_group:
-            chats = globalchat.find({})
-            for c in chats:
-                if event.chat_id == c["id"]:
-                    await event.reply("Global mode is already activated for this chat.")
-                    return
-            globalchat.insert_one({"id": event.chat_id})
-            await event.reply("Global mode turned on for this chat.")
+    if input == "on" and event.is_group:
+        chats = globalchat.find({})
+        for c in chats:
+            if event.chat_id == c["id"]:
+                await event.reply("Global mode is already activated for this chat.")
+                return
+        globalchat.insert_one({"id": event.chat_id})
+        await event.reply("Global mode turned on for this chat.")
     if input == "off":
         if event.is_group:
             chats = globalchat.find({})
@@ -295,7 +278,7 @@ async def profanity(event):
                     await event.reply("Global mode turned off for this chat.")
                     return
         await event.reply("Global mode isn't turned on for this chat.")
-    if not input == "on" and not input == "off":
+    if input not in ["on", "off"]:
         await event.reply("I only understand by on or off")
         return
 
@@ -323,17 +306,16 @@ async def cleanservice(event):
             "Please provide some input yes or no.\n\nCurrent setting is : **off**"
         )
         return
-    if input in "on":
-        if event.is_group:
-            chats = cleanservices.find({})
-            for c in chats:
-                if event.chat_id == c["id"]:
-                    await event.reply(
-                        "Clean service message already enabled for this chat."
-                    )
-                    return
-            cleanservices.insert_one({"id": event.chat_id})
-            await event.reply("I will clean all service messages from now.")
+    if input in "on" and event.is_group:
+        chats = cleanservices.find({})
+        for c in chats:
+            if event.chat_id == c["id"]:
+                await event.reply(
+                    "Clean service message already enabled for this chat."
+                )
+                return
+        cleanservices.insert_one({"id": event.chat_id})
+        await event.reply("I will clean all service messages from now.")
     if input in "off":
         if event.is_group:
             chats = cleanservices.find({})
@@ -344,7 +326,7 @@ async def cleanservice(event):
                     return
         await event.reply("Service message cleaning isn't turned on for this chat.")
 
-    if not input == "on" and not input == "off":
+    if input not in ["on", "off"]:
         await event.reply("I only understand by on or off")
         return
 
@@ -358,37 +340,38 @@ async def del_profanity(event):
     msg = str(event.text)
     sender = await event.get_sender()
     let = sender.username
-    if event.is_group:
-        if await is_register_admin(event.input_chat, event.message.sender_id):
-            return
-        pass
+    if event.is_group and await is_register_admin(
+        event.input_chat, event.message.sender_id
+    ):
+        return
     chats = spammers.find({})
     for c in chats:
-        if event.text:
-            if event.chat_id == c["id"]:
-                if better_profanity.profanity.contains_profanity(msg):
-                    await event.delete()
-                    if sender.username is None:
-                        st = sender.first_name
-                        hh = sender.id
-                        final = f"[{st}](tg://user?id={hh}) **{msg}** is detected as a slang word and your message has been deleted"
-                    else:
-                        final = f"@{let} **{msg}** is detected as a slang word and your message has been deleted"
-                    dev = await event.respond(final)
-                    await asyncio.sleep(10)
-                    await dev.delete()
-        if event.photo:
-            if event.chat_id == c["id"]:
-                await event.client.download_media(event.photo, "nudes.jpg")
-                if nude.is_nude("./nudes.jpg"):
-                    await event.delete()
-                    st = sender.first_name
-                    hh = sender.id
-                    final = f"[{st}](tg://user?id={hh}) you should only speak in english here !"
-                    dev = await event.respond(final)
-                    await asyncio.sleep(10)
-                    await dev.delete()
-                    os.remove("nudes.jpg")
+        if (
+            event.text
+            and event.chat_id == c["id"]
+            and better_profanity.profanity.contains_profanity(msg)
+        ):
+            await event.delete()
+            if sender.username is None:
+                st = sender.first_name
+                hh = sender.id
+                final = f"[{st}](tg://user?id={hh}) **{msg}** is detected as a slang word and your message has been deleted"
+            else:
+                final = f"@{let} **{msg}** is detected as a slang word and your message has been deleted"
+            dev = await event.respond(final)
+            await asyncio.sleep(10)
+            await dev.delete()
+        if event.photo and event.chat_id == c["id"]:
+            await event.client.download_media(event.photo, "nudes.jpg")
+            if nude.is_nude("./nudes.jpg"):
+                await event.delete()
+                st = sender.first_name
+                hh = sender.id
+                final = f"[{st}](tg://user?id={hh}) you should only speak in english here !"
+                dev = await event.respond(final)
+                await asyncio.sleep(10)
+                await dev.delete()
+                os.remove("nudes.jpg")
 
 
 @tbot.on(events.NewMessage(pattern=None))
@@ -400,44 +383,43 @@ async def del_profanity(event):
     msg = str(event.text)
     sender = await event.get_sender()
     let = sender.username
-    if event.is_group:
-        if await is_register_admin(event.input_chat, event.message.sender_id):
-            return
-        pass
+    if event.is_group and await is_register_admin(
+        event.input_chat, event.message.sender_id
+    ):
+        return
     chats = globalchat.find({})
     z = []
     for c in chats:
-        if event.text:
-            if event.chat_id == c["id"]:   
-                if event.message.entities != None:
-                 for (ent, txt) in event.get_entities_text():
-                  if ent.offset != 0:
-                    break
-                  if isinstance(ent, types.MessageEntityMentionName):                
-                    p = txt
-                    z.append(p)
-                print (z)               
-                u = msg.split()
-                if "@" in u and c != []:
-                   h = " ".join(filter(lambda x:x[0]!='@', u))   
-                   rm = " ".join(filter(lambda x:x not in c, h))
-                elif [(k) for k in u if k.startswith("@")]:
-                   rm = " ".join(filter(lambda x:x[0]!='@', u))            
-                elif c != []:
-                   rm = " ".join(filter(lambda x:x not in c, u))
-                else:
-                   rm = msg
-                print (rm)            
-                a = TextBlob(rm)
-                b = a.detect_language()    
-                if not b == "en":
-                    await event.delete()
-                    st = sender.first_name
-                    hh = sender.id
-                    final = f"[{st}](tg://user?id={hh}) you should only speak in english here !"
-                    dev = await event.respond(final)
-                    await asyncio.sleep(10)
-                    await dev.delete()
+        if event.text and event.chat_id == c["id"]:
+            if event.message.entities != None:
+             for (ent, txt) in event.get_entities_text():
+              if ent.offset != 0:
+                break
+              if isinstance(ent, types.MessageEntityMentionName):                
+                p = txt
+                z.append(p)
+            print (z)
+            u = msg.split()
+            if "@" in u and c != []:
+               h = " ".join(filter(lambda x:x[0]!='@', u))   
+               rm = " ".join(filter(lambda x:x not in c, h))
+            elif [(k) for k in u if k.startswith("@")]:
+               rm = " ".join(filter(lambda x:x[0]!='@', u))            
+            elif c != []:
+               rm = " ".join(filter(lambda x:x not in c, u))
+            else:
+               rm = msg
+            print (rm)
+            a = TextBlob(rm)
+            b = a.detect_language()
+            if b != "en":
+                await event.delete()
+                st = sender.first_name
+                hh = sender.id
+                final = f"[{st}](tg://user?id={hh}) you should only speak in english here !"
+                dev = await event.respond(final)
+                await asyncio.sleep(10)
+                await dev.delete()
 
 
 @tbot.on(events.ChatAction())

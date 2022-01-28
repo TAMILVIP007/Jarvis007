@@ -1,7 +1,6 @@
 import os
 from telethon.tl.types import ChatBannedRights
-ENV = bool(os.environ.get("ENV", False))
-if ENV:
+if ENV := bool(os.environ.get("ENV", False)):
     import os
     class Config(object):
         CHROME_DRIVER = os.environ.get("CHROME_DRIVER", "/app/.chromedriver/bin/chromedriver")

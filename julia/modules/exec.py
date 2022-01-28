@@ -45,9 +45,7 @@ async def msg(event):
         return
     PROCESS_RUN_TIME = 100
     cmd = event.pattern_match.group(1)
-    reply_to_id = event.message.id
-    if event.reply_to_msg_id:
-        reply_to_id = event.reply_to_msg_id
+    reply_to_id = event.reply_to_msg_id or event.message.id
     time.time() + PROCESS_RUN_TIME
     process = await asyncio.create_subprocess_shell(
         cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
@@ -62,5 +60,5 @@ async def msg(event):
     else:
         _o = o.split("\n")
         o = "`\n".join(_o)
-    await event.reply(f"**QUERY:**\n__Command:__\n`{cmd}` \n__PID:__\n`{process.pid}`\n\n**stderr:** \n`{e}`\n**Output:**\n{o}"
-)
+        await event.reply(f"**QUERY:**\n__Command:__\n`{cmd}` \n__PID:__\n`{process.pid}`\n\n**stderr:** \n`{e}`\n**Output:**\n{o}"
+    )
