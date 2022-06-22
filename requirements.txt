@@ -5,7 +5,7 @@ tempmail
 glitch_this
 cryptg==0.2.post2
 chromedriver==2.24.1
-numpy==1.19.4
+numpy==1.22.0
 speedtest
 moviepy
 colour
